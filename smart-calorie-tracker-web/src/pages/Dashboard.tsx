@@ -5,6 +5,7 @@ import { BreakfastIcon, LunchIcon, DinnerIcon, SnackIcon } from "../components/M
 import SmartFoodInput from "../components/SmartFoodInput";
 import type { KnownFood } from "../components/SmartFoodInput";
 import api from "../services/api";
+import confetti from "canvas-confetti";
 import { useTheme } from "../components/ThemeProvider";
 import { useAuth } from "../context/AuthContext";
 
@@ -62,6 +63,9 @@ export default function Dashboard() {
   const [isSuggesting, setIsSuggesting] = useState(false);
   const [suggestionCopied, setSuggestionCopied] = useState(false);
 
+  // Confetti effect state
+  const [hasCelebrated, setHasCelebrated] = useState(false);
+
   // Known Foods
   const [knownFoods, setKnownFoods] = useState<string[]>([]);
   const [knownFoodsDetails, setKnownFoodsDetails] = useState<KnownFood[]>([]);
@@ -86,6 +90,15 @@ export default function Dashboard() {
   useEffect(() => {
     fetchKnownFoods();
   }, []);
+
+  useEffect(() => {
+    if (summary.totaleCalorieOggi >= targets.calories && targets.calories > 0 && !hasCelebrated) {
+      confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+      setHasCelebrated(true);
+    } else if (summary.totaleCalorieOggi < targets.calories) {
+      setHasCelebrated(false);
+    }
+  }, [summary.totaleCalorieOggi, targets.calories, hasCelebrated]);
 
   const fetchKnownFoods = async () => {
     try {

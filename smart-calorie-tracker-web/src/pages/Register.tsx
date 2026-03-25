@@ -14,7 +14,9 @@ export default function Register() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await register(username, password, parseInt(calories), parseInt(proteins), 200, 60);
+      const finalCalories = parseInt(calories) > 0 ? parseInt(calories) : 2000;
+      const finalProteins = parseInt(proteins) > 0 ? parseInt(proteins) : 150;
+      await register(username, password, finalCalories, finalProteins, 200, 65);
       navigate('/');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Registrazione fallita.');
