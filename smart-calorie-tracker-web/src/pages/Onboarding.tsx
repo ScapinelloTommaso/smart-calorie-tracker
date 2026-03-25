@@ -76,6 +76,12 @@ export default function Onboarding() {
   const handleRegister = async () => {
     setLoading(true);
     setError('');
+
+    const finalCalories = macros.Calories > 0 ? macros.Calories : 2000;
+    const finalProteins = macros.Proteins > 0 ? macros.Proteins : 120;
+    const finalCarbs = macros.Carbs > 0 ? macros.Carbs : 250;
+    const finalFats = macros.Fats > 0 ? macros.Fats : 65;
+
     try {
       if (isGoogleFlow) {
         // Google registration: call google-register with macro goals
@@ -88,10 +94,10 @@ export default function Onboarding() {
 
         const { data } = await api.post('/auth/google-register', {
           Credential: credential,
-          DailyCalorieGoal: macros.Calories,
-          DailyProteinGoal: macros.Proteins,
-          DailyCarbsGoal: macros.Carbs,
-          DailyFatsGoal: macros.Fats
+          DailyCalorieGoal: finalCalories,
+          DailyProteinGoal: finalProteins,
+          DailyCarbsGoal: finalCarbs,
+          DailyFatsGoal: finalFats
         });
 
         localStorage.setItem('token', data.token);
@@ -113,7 +119,7 @@ export default function Onboarding() {
         navigate('/');
       } else {
         // Traditional registration
-        await register(username, password, macros.Calories, macros.Proteins, macros.Carbs, macros.Fats);
+        await register(username, password, finalCalories, finalProteins, finalCarbs, finalFats);
         navigate('/');
       }
     } catch (err: any) {

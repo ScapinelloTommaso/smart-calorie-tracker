@@ -1,10 +1,9 @@
 import { useState, useEffect } from "react";
 import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
-import { Plus, Sparkles, Loader2, X, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, CalendarDays, Pencil, Trash2, Wand2, Copy, Check as CheckIcon, ScanBarcode } from "lucide-react";
+import { Plus, Sparkles, Loader2, X, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, CalendarDays, Pencil, Trash2, Wand2, Copy, Check as CheckIcon } from "lucide-react";
 import { BreakfastIcon, LunchIcon, DinnerIcon, SnackIcon } from "../components/MealIcons";
 import SmartFoodInput from "../components/SmartFoodInput";
 import type { KnownFood } from "../components/SmartFoodInput";
-import BarcodeScannerModal from "../components/BarcodeScannerModal";
 import api from "../services/api";
 import { useTheme } from "../components/ThemeProvider";
 import { useAuth } from "../context/AuthContext";
@@ -66,9 +65,6 @@ export default function Dashboard() {
   // Known Foods
   const [knownFoods, setKnownFoods] = useState<string[]>([]);
   const [knownFoodsDetails, setKnownFoodsDetails] = useState<KnownFood[]>([]);
-
-  // Barcode Scanner
-  const [isScannerOpen, setIsScannerOpen] = useState(false);
 
   // Modale Calendario
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
@@ -570,13 +566,6 @@ export default function Dashboard() {
                 <Sparkles size={26} className="text-cyan-400 fill-cyan-400" /> {editingLogId ? 'Modifica Pasto' : 'Aggiungi Pasto'}
               </h3>
               <div className="flex items-center gap-2">
-                <button 
-                  onClick={() => { setIsModalOpen(false); setIsScannerOpen(true); }}
-                  className="text-slate-400 dark:text-slate-500 hover:text-cyan-500 dark:hover:text-cyan-400 transition-colors p-1.5 bg-slate-50 dark:bg-slate-900 rounded-full"
-                  title="Scansiona codice a barre"
-                >
-                  <ScanBarcode size={20} strokeWidth={2.5} />
-                </button>
                 <button onClick={() => !isAnalyzing && setIsModalOpen(false)} className="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors p-1 bg-slate-50 dark:bg-slate-900 rounded-full">
                   <X size={22} strokeWidth={3} />
                 </button>
@@ -682,16 +671,6 @@ export default function Dashboard() {
           </div>
         </div>
       )}
-      {/* Barcode Scanner Modal */}
-      <BarcodeScannerModal 
-        isOpen={isScannerOpen}
-        onClose={() => setIsScannerOpen(false)}
-        onProductFound={(name) => {
-          setMealInput(name + ' ');
-          setIsScannerOpen(false);
-          setIsModalOpen(true);
-        }}
-      />
 
     </div>
   );

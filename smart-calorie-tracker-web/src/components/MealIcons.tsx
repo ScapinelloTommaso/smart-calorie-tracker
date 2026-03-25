@@ -1,17 +1,14 @@
 import React from 'react';
+import { Sunrise, Moon } from 'lucide-react';
 
 interface IconProps {
   className?: string;
 }
 
 export const BreakfastIcon = ({ className }: IconProps) => (
-  <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
-    <circle cx="32" cy="32" r="30" fill="#d1fae5" />
-    <path d="M18 42C18 30 24 22 32 22C40 22 46 30 46 42H18Z" fill="#ffffff" stroke="#1e293b" strokeWidth="4" strokeLinejoin="round" />
-    <path d="M46 30C52 30 54 36 50 40H46" fill="#ffffff" stroke="#1e293b" strokeWidth="4" strokeLinejoin="round" />
-    <path d="M12 46H52" stroke="#1e293b" strokeWidth="4" strokeLinecap="round" />
-    <path d="M26 14v4M38 14v4" stroke="#1e293b" strokeWidth="3" strokeLinecap="round" />
-  </svg>
+  <div className={`rounded-full bg-[#d1fae5] text-[#1e293b] flex items-center justify-center ${className}`}>
+    <Sunrise size="55%" strokeWidth={2.5} />
+  </div>
 );
 
 export const LunchIcon = ({ className }: IconProps) => (
@@ -27,12 +24,9 @@ export const LunchIcon = ({ className }: IconProps) => (
 );
 
 export const DinnerIcon = ({ className }: IconProps) => (
-  <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
-    <circle cx="32" cy="32" r="30" fill="#eef2ff" />
-    <path d="M20 48L16 28C16 22 22 16 32 16C42 16 48 22 48 28L44 48" fill="#ffffff" stroke="#1e293b" strokeWidth="4" strokeLinejoin="round" />
-    <path d="M16 48C16 54 24 56 32 56C40 56 48 54 48 48H16Z" fill="#ffffff" stroke="#1e293b" strokeWidth="4" strokeLinejoin="round" />
-    <path d="M24 16v-6M32 16v-8M40 16v-6" stroke="#1e293b" strokeWidth="3" strokeLinecap="round" />
-  </svg>
+  <div className={`rounded-full bg-[#eef2ff] text-[#1e293b] flex items-center justify-center ${className}`}>
+    <Moon size="55%" strokeWidth={2.5} />
+  </div>
 );
 
 export const SnackIcon = ({ className }: IconProps) => (
