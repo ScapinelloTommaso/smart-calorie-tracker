@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { GoogleLogin } from '@react-oauth/google';
-import axios from 'axios';
 import api from '../services/api';
 import { ChevronRight, Target, Activity, Check, Sparkles } from 'lucide-react';
 
@@ -52,7 +51,7 @@ export default function Onboarding() {
     setError('');
     
     try {
-      const { data } = await axios.post('http://localhost:5232/api/onboarding/calculate-macros', {
+      const { data } = await api.post('/onboarding/calculate-macros', {
         Age: Number(age),
         Gender: gender,
         Height: Number(height),
