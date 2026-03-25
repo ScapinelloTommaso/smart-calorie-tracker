@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
+import { GoogleLogin } from '@react-oauth/google';
 import api from '../services/api';
 
 export default function Login() {
@@ -17,6 +18,41 @@ export default function Login() {
       navigate('/');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Login failed.');
+    }
+  };
+
+  const handleGoogleSuccess = async (credentialResponse: any) => {
+    try {
+      const { data, status } = await api.post('/auth/google', { 
+        Credential: credentialResponse.credential 
+      });
+
+      if (status === 202 && data.requiresOnboarding) {
+        sessionStorage.setItem('googleCredential', credentialResponse.credential);
+        sessionStorage.setItem('googleEmail', data.email);
+        sessionStorage.setItem('googleName', data.name);
+        navigate('/register?google=true');
+        return;
+      }
+
+      localStorage.setItem('token', data.token);
+      const userData = { id: data.userId, username: data.username };
+      localStorage.setItem('user', JSON.stringify(userData));
+      updateUser(userData);
+      navigate('/');
+      try {
+        const { data: profile } = await api.get('/user/profile');
+        updateUser(profile);
+      } catch { /* silent */ }
+    } catch (err: any) {
+      if (err.response?.status === 202 && err.response?.data?.requiresOnboarding) {
+        sessionStorage.setItem('googleCredential', credentialResponse.credential);
+        sessionStorage.setItem('googleEmail', err.response.data.email);
+        sessionStorage.setItem('googleName', err.response.data.name);
+        navigate('/register?google=true');
+        return;
+      }
+      setError(err.response?.data?.message || 'Errore durante il login con Google.');
     }
   };
 
@@ -55,6 +91,26 @@ export default function Login() {
             Accedi
           </button>
         </form>
+
+        {/* Divisore */}
+        <div className="flex items-center gap-3 my-6">
+          <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700"></div>
+          <span className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Oppure</span>
+          <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700"></div>
+        </div>
+
+        {/* Google Login */}
+        <div className="flex justify-center">
+          <GoogleLogin 
+            onSuccess={handleGoogleSuccess}
+            onError={() => setError('Errore durante il login con Google.')}
+            theme="outline"
+            size="large"
+            width="320"
+            text="signin_with"
+            shape="pill"
+          />
+        </div>
 
         <p className="mt-6 text-center text-sm font-medium text-slate-500 dark:text-slate-400">
           Non hai un account? <Link to="/register" className="text-emerald-500 dark:text-emerald-400 hover:text-emerald-600 font-bold">Registrati</Link>

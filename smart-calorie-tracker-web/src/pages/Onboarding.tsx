@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
+import { GoogleLogin } from '@react-oauth/google';
 import api from '../services/api';
 import { ChevronRight, Target, Activity, Check, Sparkles } from 'lucide-react';
 
@@ -128,6 +129,43 @@ export default function Onboarding() {
     }
   };
 
+  const handleGoogleSuccess = async (credentialResponse: any) => {
+    try {
+      const { data, status } = await api.post('/auth/google', {
+        Credential: credentialResponse.credential
+      });
+
+      if (status === 202 && data.requiresOnboarding) {
+        sessionStorage.setItem('googleCredential', credentialResponse.credential);
+        sessionStorage.setItem('googleEmail', data.email);
+        sessionStorage.setItem('googleName', data.name);
+        setUsername(data.email);
+        setStep(2);
+        return;
+      }
+
+      localStorage.setItem('token', data.token);
+      const userData = { id: data.userId, username: data.username };
+      localStorage.setItem('user', JSON.stringify(userData));
+      updateUser(userData);
+      navigate('/');
+      try {
+        const { data: profile } = await api.get('/user/profile');
+        updateUser(profile);
+      } catch { /* silent */ }
+    } catch (err: any) {
+      if (err.response?.status === 202 && err.response?.data?.requiresOnboarding) {
+        sessionStorage.setItem('googleCredential', credentialResponse.credential);
+        sessionStorage.setItem('googleEmail', err.response.data.email);
+        sessionStorage.setItem('googleName', err.response.data.name);
+        setUsername(err.response.data.email);
+        setStep(2);
+        return;
+      }
+      setError(err.response?.data?.message || 'Errore durante la registrazione con Google.');
+    }
+  };
+
   const inputClass = "w-full bg-gray-50 dark:bg-slate-800 border-none rounded-xl p-4 text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-emerald-400 outline-none transition-colors font-medium";
 
   return (
@@ -165,6 +203,24 @@ export default function Onboarding() {
                 Avanti <ChevronRight size={20} strokeWidth={3} />
               </button>
 
+              {/* Divisore */}
+              <div className="flex items-center gap-3 mt-2">
+                <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700"></div>
+                <span className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Oppure</span>
+                <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700"></div>
+              </div>
+
+              <div className="flex justify-center mt-2">
+                <GoogleLogin
+                  onSuccess={handleGoogleSuccess}
+                  onError={() => setError('Errore durante la registrazione con Google.')}
+                  theme="outline"
+                  size="large"
+                  width="320"
+                  text="signup_with"
+                  shape="pill"
+                />
+              </div>
             </div>
           </div>
         )}

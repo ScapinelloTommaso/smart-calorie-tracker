@@ -34,7 +34,7 @@ public class DiaryService : IDiaryService
             model = "llama-3.1-8b-instant",
             messages = new[]
             {
-                new { role = "system", content = "Sei un estrattore dati nutrizionali. DEVI restituire ESCLUSIVAMENTE un oggetto JSON valido. NESSUN testo aggiuntivo, NESSUN blocco markdown. Solo le parentesi graffe e il contenuto. Se l'utente inserisce PIÙ CIBI nella stessa frase, DEVI CALCOLARE LA SOMMA TOTALE delle calorie e dei macronutrienti di tutti i cibi e restituire UN SOLO oggetto JSON aggregato. NON restituire MAI un array. Formato OBBLIGATORIO: { \"FoodName\": \"string descrittivo\", \"Grams\": numero_totale_grammi }. REGOLE: Il 'FoodName' deve descrivere il pasto (es. 'pasta e mela'). Se i grammi mancano, stima un peso sensato per ogni cibo e somma." },
+                new { role = "system", content = "Sei un estrattore dati nutrizionali. RESTITUISCI SOLO ED ESCLUSIVAMENTE IL JSON PURO. NESSUN TESTO INTRODUTTIVO, NESSUN BLOCCO MARKDOWN. Solo le parentesi graffe e il contenuto. Se l'utente inserisce PIÙ CIBI nella stessa frase, DEVI CALCOLARE LA SOMMA TOTALE delle calorie e dei macronutrienti di tutti i cibi e restituire UN SOLO oggetto JSON aggregato. NON restituire MAI un array. Formato OBBLIGATORIO: { \"FoodName\": \"string descrittivo\", \"Grams\": numero_totale_grammi }. REGOLE: Il 'FoodName' deve descrivere il pasto (es. 'pasta e mela'). Se i grammi mancano, stima un peso sensato per ogni cibo e somma." },
                 new { role = "user", content = userInput }
             },
             response_format = new { type = "json_object" }
@@ -234,7 +234,7 @@ public class DiaryService : IDiaryService
             model = "llama-3.1-8b-instant",
             messages = new[]
             {
-                new { role = "system", content = "Sei un nutrizionista. DEVI restituire ESCLUSIVAMENTE un oggetto JSON valido. NESSUN testo aggiuntivo, NESSUN blocco markdown. Solo le parentesi graffe e il contenuto. Formato: { \"FoodName\": \"string\", \"CaloriesPer100g\": double, \"ProteinsPer100g\": double, \"CarbsPer100g\": double, \"FatsPer100g\": double, \"Grams\": double }." },
+                new { role = "system", content = "Sei un nutrizionista. RESTITUISCI SOLO ED ESCLUSIVAMENTE IL JSON PURO. NESSUN TESTO INTRODUTTIVO, NESSUN BLOCCO MARKDOWN. Solo le parentesi graffe e il contenuto. Formato: { \"FoodName\": \"string\", \"CaloriesPer100g\": double, \"ProteinsPer100g\": double, \"CarbsPer100g\": double, \"FatsPer100g\": double, \"Grams\": double }." },
                 new { role = "user", content = userInput }
             },
             response_format = new { type = "json_object" }
@@ -304,8 +304,7 @@ public class DiaryService : IDiaryService
     /// </summary>
     private static string SanitizeJsonResponse(string raw)
     {
-        // Remove markdown code fences like ```json ... ``` or ``` ... ```
-        var cleaned = Regex.Replace(raw, @"```(?:json)?\s*", "", RegexOptions.IgnoreCase).Trim();
+        string cleaned = raw.Replace("```json", "").Replace("```", "").Trim();
 
         // Extract the first { ... } block
         var firstBrace = cleaned.IndexOf('{');
