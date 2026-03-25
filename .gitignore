@@ -1,0 +1,18 @@
+# Node.js
+node_modules/
+dist/
+.env
+.vite/
+
+# .NET
+bin/
+obj/
+appsettings.Development.json
+.vs/
+*.swp
+*.user
+*.suo
+
+# General OS
+.DS_Store
+Thumbs.db

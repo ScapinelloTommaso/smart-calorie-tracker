@@ -1,0 +1,8 @@
+namespace SmartCalorieTracker.Api.DTOs;
+
+public class AuthResponseDto
+{
+    public required string Token { get; set; }
+    public Guid UserId { get; set; }
+    public required string Username { get; set; }
+}
