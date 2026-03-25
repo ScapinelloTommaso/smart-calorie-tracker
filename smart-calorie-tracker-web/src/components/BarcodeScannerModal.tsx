@@ -19,6 +19,7 @@ const SCANNER_CONFIG = {
     Html5QrcodeSupportedFormats.EAN_8,
   ],
   videoConstraints: {
+    facingMode: "user" as const,
     width: { min: 640, ideal: 1280, max: 1920 },
     height: { min: 480, ideal: 720, max: 1080 },
   },
