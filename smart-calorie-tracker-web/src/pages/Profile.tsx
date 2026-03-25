@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { LogOut, Save, User as UserIcon, Loader2, Moon, Sun } from 'lucide-react';
+import { LogOut, Save, User as UserIcon, Loader2 } from 'lucide-react';
 import api from '../services/api';
-import { useTheme } from '../components/ThemeProvider';
 
 export default function Profile() {
   const { logout, updateUser } = useAuth();
-  const { isDarkMode, toggleTheme } = useTheme();
   
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -95,13 +93,6 @@ export default function Profile() {
             <p className="text-slate-400 dark:text-slate-500 font-bold text-xs uppercase tracking-widest mt-1">Gestisci il tuo piano</p>
           </div>
         </div>
-        
-        <button 
-           onClick={toggleTheme} 
-           className="p-3 bg-white dark:bg-slate-800 rounded-2xl shadow-sm text-slate-400 dark:text-slate-300 hover:text-amber-500 dark:hover:text-amber-400 transition-colors border border-transparent dark:border-slate-700/50 active:scale-95"
-        >
-           {isDarkMode ? <Sun size={24} strokeWidth={2.5} /> : <Moon size={24} strokeWidth={2.5} />}
-        </button>
       </header>
 
       <section className="bg-white dark:bg-slate-800 rounded-[2.5rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none p-6 mb-8 border border-slate-50 dark:border-slate-700 transition-colors duration-300">
