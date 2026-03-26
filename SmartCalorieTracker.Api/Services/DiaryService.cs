@@ -34,7 +34,7 @@ public class DiaryService : IDiaryService
             model = "llama-3.1-8b-instant",
             messages = new[]
             {
-                new { role = "system", content = "Sei un estrattore dati nutrizionali. RISPONDI SOLO ED ESCLUSIVAMENTE CON UN OGGETTO JSON. NON SCRIVERE NESSUNA PAROLA PRIMA O DOPO LE PARENTESI GRAFFE. Se l'utente inserisce PIÙ CIBI nella stessa frase, DEVI CALCOLARE LA SOMMA TOTALE delle calorie e dei macronutrienti di tutti i cibi e restituire UN SOLO oggetto JSON aggregato. NON restituire MAI un array. Formato OBBLIGATORIO: { \"FoodName\": \"string descrittivo\", \"Grams\": numero_totale_grammi }. REGOLE: Il 'FoodName' deve descrivere il pasto (es. 'pasta e mela'). Se i grammi mancano, stima un peso sensato per ogni cibo e somma." },
+                new { role = "system", content = "Sei un estrattore dati nutrizionali. RISPONDI SOLO ED ESCLUSIVAMENTE CON UN OGGETTO JSON. NON SCRIVERE NESSUNA PAROLA PRIMA O DOPO LE PARENTESI GRAFFE. Rispondi SOLO con un JSON contenente ESATTAMENTE queste due chiavi in inglese: 'FoodName' (stringa, nome del pasto aggregato) e 'Grams' (numero, quantità totale in grammi senza 'g' o 'gr'). Esempio corretto: {\"FoodName\": \"pasta e mela\", \"Grams\": 150}. NON aggiungere unità di misura ai numeri. Se i grammi mancano, stima un peso sensato e somma tutto." },
                 new { role = "user", content = userInput }
             },
             response_format = new { type = "json_object" }
@@ -54,7 +54,12 @@ public class DiaryService : IDiaryService
             .GetString();
 
         var sanitized = SanitizeJsonResponse(messageContent ?? "{}");
-        var extraction = JsonSerializer.Deserialize<ExtractionResponse>(sanitized);
+        var options = new JsonSerializerOptions 
+        { 
+            PropertyNameCaseInsensitive = true,
+            NumberHandling = System.Text.Json.Serialization.JsonNumberHandling.AllowReadingFromString 
+        };
+        var extraction = JsonSerializer.Deserialize<ExtractionResponse>(sanitized, options);
 
         if (extraction == null || string.IsNullOrEmpty(extraction.FoodName))
         {
@@ -234,7 +239,7 @@ public class DiaryService : IDiaryService
             model = "llama-3.1-8b-instant",
             messages = new[]
             {
-                new { role = "system", content = "Sei un nutrizionista. RISPONDI SOLO ED ESCLUSIVAMENTE CON UN OGGETTO JSON. NON SCRIVERE NESSUNA PAROLA PRIMA O DOPO LE PARENTESI GRAFFE. Formato: { \"FoodName\": \"string\", \"CaloriesPer100g\": double, \"ProteinsPer100g\": double, \"CarbsPer100g\": double, \"FatsPer100g\": double, \"Grams\": double }." },
+                new { role = "system", content = "Sei un nutrizionista. RISPONDI SOLO ED ESCLUSIVAMENTE CON UN OGGETTO JSON. NON SCRIVERE NESSUNA PAROLA PRIMA O DOPO LE PARENTESI GRAFFE. I valori per Calories, Proteins, Carbs, Fats e Grams devono essere ESCLUSIVAMENTE NUMERI. Non aggiungere MAI unità di misura. Esempio corretto: {\"FoodName\": \"mela\", \"CaloriesPer100g\": 52, \"ProteinsPer100g\": 0.3, \"CarbsPer100g\": 14, \"FatsPer100g\": 0.2, \"Grams\": 150}." },
                 new { role = "user", content = userInput }
             },
             response_format = new { type = "json_object" }
@@ -250,7 +255,12 @@ public class DiaryService : IDiaryService
         var messageContent = jsonDoc.RootElement.GetProperty("choices")[0].GetProperty("message").GetProperty("content").GetString();
 
         var sanitizedUpdate = SanitizeJsonResponse(messageContent ?? "{}");
-        var extraction = System.Text.Json.JsonSerializer.Deserialize<ExtractionResponse>(sanitizedUpdate);
+        var options = new JsonSerializerOptions 
+        { 
+            PropertyNameCaseInsensitive = true,
+            NumberHandling = System.Text.Json.Serialization.JsonNumberHandling.AllowReadingFromString 
+        };
+        var extraction = System.Text.Json.JsonSerializer.Deserialize<ExtractionResponse>(sanitizedUpdate, options);
         if (extraction == null) throw new Exception("Ai failure");
 
         var normalizedInput = extraction.FoodName.ToLower().Trim();
@@ -305,7 +315,10 @@ public class DiaryService : IDiaryService
     private static string SanitizeJsonResponse(string raw)
     {
         var match = System.Text.RegularExpressions.Regex.Match(raw, @"\{[\s\S]*\}");
-        return match.Success ? match.Value : raw;
+        string cleanJson = match.Success ? match.Value : raw;
+        
+        // Remove units only when they immediately follow digits, preventing replacement in words like "formaggio"
+        return System.Text.RegularExpressions.Regex.Replace(cleanJson, @"(\d+)\s*(g|gr|kcal)\b", "$1", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
     }
 
     public async Task<string> SuggestMealAsync(Guid userId)

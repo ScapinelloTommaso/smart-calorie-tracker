@@ -43,7 +43,7 @@ public class OnboardingController : ControllerBase
                 model = "llama-3.1-8b-instant",
                 messages = new[]
                 {
-                    new { role = "system", content = "Sei un nutrizionista esperto. Calcola TDEE e macronutrienti basati su questi dati. Obiettivi: Dimagrimento (-500 kcal), Mantenimento, Massa (+500 kcal). RISPONDI SOLO ED ESCLUSIVAMENTE CON UN OGGETTO JSON. NON SCRIVERE NESSUNA PAROLA PRIMA O DOPO LE PARENTESI GRAFFE. Formato: { \"Calories\": numero, \"Proteins\": numero, \"Carbs\": numero, \"Fats\": numero }." },
+                    new { role = "system", content = "Sei un nutrizionista esperto. Calcola TDEE e macronutrienti basati su questi dati. Obiettivi: Dimagrimento (-500 kcal), Mantenimento, Massa (+500 kcal). RISPONDI SOLO ED ESCLUSIVAMENTE CON UN OGGETTO JSON. NON SCRIVERE NESSUNA PAROLA PRIMA O DOPO LE PARENTESI GRAFFE. I valori per Calories, Proteins, Carbs e Fats devono essere ESCLUSIVAMENTE NUMERI INTERI O DECIMALI. Non aggiungere MAI unità di misura come 'g', 'gr' o 'kcal'. Esempio corretto: {\"Calories\": 2000, \"Proteins\": 150, \"Carbs\": 200, \"Fats\": 65}." },
                     new { role = "user", content = prompt }
                 },
                 response_format = new { type = "json_object" }
@@ -65,7 +65,15 @@ public class OnboardingController : ControllerBase
             var match = System.Text.RegularExpressions.Regex.Match(messageContent, @"\{[\s\S]*\}");
             string cleanJson = match.Success ? match.Value : messageContent;
 
-            var macros = JsonSerializer.Deserialize<MacrosResponse>(cleanJson);
+            // Rimuovi esplicitamente unità di misura vicino ai numeri (es. 150g -> 150) evitando di rompere i nomi dei cibi
+            cleanJson = System.Text.RegularExpressions.Regex.Replace(cleanJson, @"(\d+)\s*(g|gr|kcal)\b", "$1", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+
+            var options = new JsonSerializerOptions 
+            { 
+                PropertyNameCaseInsensitive = true,
+                NumberHandling = System.Text.Json.Serialization.JsonNumberHandling.AllowReadingFromString 
+            };
+            var macros = JsonSerializer.Deserialize<MacrosResponse>(cleanJson, options);
 
             return Ok(macros);
         }

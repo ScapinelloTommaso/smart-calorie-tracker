@@ -40,7 +40,7 @@ public class FoodProcessingService : IFoodProcessingService
             model = "llama-3.1-8b-instant",
             messages = new[]
             {
-                new { role = "system", content = "Sei un nutrizionista. RISPONDI SOLO ED ESCLUSIVAMENTE CON UN OGGETTO JSON. NON SCRIVERE NESSUNA PAROLA PRIMA O DOPO LE PARENTESI GRAFFE. Formato: FoodName (string), CaloriesPer100g (double), ProteinsPer100g (double), CarbsPer100g (double), FatsPer100g (double)." },
+                new { role = "system", content = "Sei un nutrizionista. RISPONDI SOLO ED ESCLUSIVAMENTE CON UN OGGETTO JSON. NON SCRIVERE NESSUNA PAROLA PRIMA O DOPO LE PARENTESI GRAFFE. I valori per Calories, Proteins, Carbs e Fats devono essere ESCLUSIVAMENTE NUMERI INTERI O DECIMALI. Non aggiungere MAI unità di misura come 'g', 'gr' o 'kcal'. Esempio corretto: {\"FoodName\": \"mela\", \"CaloriesPer100g\": 52, \"ProteinsPer100g\": 0.3, \"CarbsPer100g\": 14, \"FatsPer100g\": 0.2}." },
                 new { role = "user", content = normalizedInput }
             },
             response_format = new { type = "json_object" }
@@ -61,8 +61,14 @@ public class FoodProcessingService : IFoodProcessingService
 
         var match = System.Text.RegularExpressions.Regex.Match(messageContent, @"\{[\s\S]*\}");
         string cleanJson = match.Success ? match.Value : messageContent;
+        cleanJson = System.Text.RegularExpressions.Regex.Replace(cleanJson, @"(\d+)\s*(g|gr|kcal)\b", "$1", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
 
-        var parsedData = JsonSerializer.Deserialize<GroqFoodResponse>(cleanJson);
+        var options = new JsonSerializerOptions 
+        { 
+            PropertyNameCaseInsensitive = true,
+            NumberHandling = System.Text.Json.Serialization.JsonNumberHandling.AllowReadingFromString 
+        };
+        var parsedData = JsonSerializer.Deserialize<GroqFoodResponse>(cleanJson, options);
 
         if (parsedData == null || string.IsNullOrEmpty(parsedData.FoodName))
         {
