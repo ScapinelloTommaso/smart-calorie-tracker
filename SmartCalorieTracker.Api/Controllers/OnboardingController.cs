@@ -43,7 +43,7 @@ public class OnboardingController : ControllerBase
                 model = "llama-3.1-8b-instant",
                 messages = new[]
                 {
-                    new { role = "system", content = "Sei un nutrizionista esperto. Calcola TDEE e macronutrienti basati su questi dati. Obiettivi: Dimagrimento (-500 kcal), Mantenimento, Massa (+500 kcal). RESTITUISCI SOLO E SOLTANTO RAW JSON. NESSUNA SPIEGAZIONE. NESSUN MARKDOWN. Formato: { \"Calories\": numero, \"Proteins\": numero, \"Carbs\": numero, \"Fats\": numero }." },
+                    new { role = "system", content = "Sei un nutrizionista esperto. Calcola TDEE e macronutrienti basati su questi dati. Obiettivi: Dimagrimento (-500 kcal), Mantenimento, Massa (+500 kcal). RISPONDI SOLO ED ESCLUSIVAMENTE CON UN OGGETTO JSON. NON SCRIVERE NESSUNA PAROLA PRIMA O DOPO LE PARENTESI GRAFFE. Formato: { \"Calories\": numero, \"Proteins\": numero, \"Carbs\": numero, \"Fats\": numero }." },
                     new { role = "user", content = prompt }
                 },
                 response_format = new { type = "json_object" }
@@ -60,9 +60,11 @@ public class OnboardingController : ControllerBase
                 .GetProperty("choices")[0]
                 .GetProperty("message")
                 .GetProperty("content")
-                .GetString();
+                .GetString() ?? "{}";
 
-            string cleanJson = (messageContent ?? "{}").Replace("```json", "").Replace("```", "").Trim();
+            var match = System.Text.RegularExpressions.Regex.Match(messageContent, @"\{[\s\S]*\}");
+            string cleanJson = match.Success ? match.Value : messageContent;
+
             var macros = JsonSerializer.Deserialize<MacrosResponse>(cleanJson);
 
             return Ok(macros);

@@ -40,7 +40,7 @@ public class FoodProcessingService : IFoodProcessingService
             model = "llama-3.1-8b-instant",
             messages = new[]
             {
-                new { role = "system", content = "Sei un nutrizionista. Restituisci SOLO un JSON con: FoodName (string), CaloriesPer100g (double), ProteinsPer100g (double), CarbsPer100g (double), FatsPer100g (double)." },
+                new { role = "system", content = "Sei un nutrizionista. RISPONDI SOLO ED ESCLUSIVAMENTE CON UN OGGETTO JSON. NON SCRIVERE NESSUNA PAROLA PRIMA O DOPO LE PARENTESI GRAFFE. Formato: FoodName (string), CaloriesPer100g (double), ProteinsPer100g (double), CarbsPer100g (double), FatsPer100g (double)." },
                 new { role = "user", content = normalizedInput }
             },
             response_format = new { type = "json_object" }
@@ -57,9 +57,12 @@ public class FoodProcessingService : IFoodProcessingService
             .GetProperty("choices")[0]
             .GetProperty("message")
             .GetProperty("content")
-            .GetString();
+            .GetString() ?? "{}";
 
-        var parsedData = JsonSerializer.Deserialize<GroqFoodResponse>(messageContent ?? "{}");
+        var match = System.Text.RegularExpressions.Regex.Match(messageContent, @"\{[\s\S]*\}");
+        string cleanJson = match.Success ? match.Value : messageContent;
+
+        var parsedData = JsonSerializer.Deserialize<GroqFoodResponse>(cleanJson);
 
         if (parsedData == null || string.IsNullOrEmpty(parsedData.FoodName))
         {
