@@ -60,10 +60,10 @@ export default function Onboarding() {
         Goal: goal
       });
       setMacros({
-        Calories: Math.round(Number(data.Calories) || 0),
-        Proteins: Math.round(Number(data.Proteins) || 0),
-        Carbs: Math.round(Number(data.Carbs) || 0),
-        Fats: Math.round(Number(data.Fats) || 0)
+        Calories: Math.round(Number(data.calories ?? data.Calories) || 0),
+        Proteins: Math.round(Number(data.proteins ?? data.Proteins) || 0),
+        Carbs: Math.round(Number(data.carbs ?? data.Carbs) || 0),
+        Fats: Math.round(Number(data.fats ?? data.Fats) || 0)
       });
       setStep(3);
     } catch (err: any) {
